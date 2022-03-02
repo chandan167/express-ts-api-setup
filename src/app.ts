@@ -8,6 +8,7 @@ import  {StatusCodes, ReasonPhrases} from 'http-status-codes';
 
 import './database';
 import ApiResponse from './utils/api-response';
+import router from './routes';
 const app:Express = express();
 
 app.use(cors());
@@ -21,6 +22,8 @@ if(process.env.NODE_ENV == 'development'){
 app.get('/health-check', (req:Request, res:Response, next:NextFunction) =>{
     return new ApiResponse(res).setMessage("good health").sendToJson();
 })
+
+app.use('/api', router);
 
 
 app.use(function(req:Request, res:Response, next:NextFunction){
