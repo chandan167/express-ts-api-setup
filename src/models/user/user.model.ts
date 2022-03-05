@@ -1,30 +1,42 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Document, Model } from 'mongoose';
+import {genSalt, hash, compare} from 'bcryptjs';
+import config from 'config';
 
 
-export interface User {
+export interface User extends Document {
     _id?: string;
     name: string;
-    avtar?: string;
+    avatar?: string;
     email: string;
-    emailVerifyedAt?: Date;
+    emailVerifiedAt?: Date;
     phone?: string;
-    phoneVerifyedAt?: Date;
+    phoneVerifiedAt?: Date;
     password: string;
     lastLogin?: Date;
     isOnline?:boolean;
     blockedAt?: Date;
     message?: string;
-    createedAt?: Date;
+    createdAt?: Date;
     updatedAt?: Date;
-    roles?: string[]
 }
 
-const userScheam = new Schema<User>({
+export interface UserModelI extends Model<User>{
+    findByEmail(email:string):Promise<this|null>;
+    login(email:string, password:string):Promise<null|this>;
+    createToken():AuthToken
+}
+
+export interface AuthToken{
+    authToken:string;
+    refreshToken:string;
+}
+
+const userSchema = new Schema<User, UserModelI>({
     name: {
         type: String,
         required: true,
     },
-    avtar: {
+    avatar: {
         type: String,
         required: false,
         default: null
@@ -34,7 +46,7 @@ const userScheam = new Schema<User>({
         required: true,
         unique: true,
     },
-    emailVerifyedAt: {
+    emailVerifiedAt: {
         type: Date,
         required: false,
         default: null
@@ -45,7 +57,7 @@ const userScheam = new Schema<User>({
         index: true,
         default: null
     },
-    phoneVerifyedAt: {
+    phoneVerifiedAt: {
         type: Date,
         required: false,
         default: null
@@ -89,4 +101,34 @@ const userScheam = new Schema<User>({
     }
 });
 
-export const UserModel = model<User>('User', userScheam);
+userSchema.pre('save', async function(next){
+    console.log("hash password")
+    if(!this.isModified('password')){
+        next();
+    }
+    const salt = await genSalt(config.get<number>('password.hash-salt'));
+    this.password = await hash(this.password, salt);
+    next();
+})
+
+userSchema.static('findByEmail', async function (email:string):Promise<UserModelI|null>{
+    return await this.findOne({email})
+})
+
+userSchema.static('login', async function(email:string, password:string):Promise<null|UserModelI>{
+    const user:any = await this.findOne({email});
+    if(!user) return null;
+    if(await compare(password, user.password)) return user;
+    return null;
+
+})
+
+userSchema.static('createToken', function():AuthToken{
+   return {authToken: "", refreshToken: ""}
+})
+
+export const UserModel = model<User, UserModelI>('User', userSchema);
+
+
+
+

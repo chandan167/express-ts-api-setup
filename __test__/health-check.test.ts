@@ -14,7 +14,7 @@ describe('Application health check test', () =>{
     })
 
     test('hit invalid url except to return 404 status', async () =>{
-        const response = await request().get('/health-checksadasdad')
+        const response = await request().get('/health-check-')
         expect(response.status).toBe(StatusCodes.NOT_FOUND)
     })
     
