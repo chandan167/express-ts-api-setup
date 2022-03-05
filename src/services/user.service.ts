@@ -12,7 +12,7 @@ export class UserService {
         if (!user) {
             throw createError(StatusCodes.UNAUTHORIZED, 'wrong credential');
         }
-        return user.createToken();
+        return user;
     }
 }
 

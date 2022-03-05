@@ -3,6 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import ApiResponse from "../utils/api-response"
 import { User } from '../models';
 import { UserService } from '../services/user.service';
+import { TokenService } from '../services/token.service';
 
 export class UserController{
     static async signUp(req:Request, res:Response, next:NextFunction ){
@@ -15,8 +16,9 @@ export class UserController{
 
     static async login(req:Request, res:Response, next:NextFunction ){
         const {email, password} = req.body;
-        const token = await UserService.login(email,password);
-        return (new ApiResponse(res)).setData({token}).sendToJson();
+        const user:User|any = await UserService.login(email,password);
+        const token = TokenService.generateToken(user._id);
+        return (new ApiResponse(res)).setData({token:token}).setMessage('login successful').sendToJson();
     }
 }
 

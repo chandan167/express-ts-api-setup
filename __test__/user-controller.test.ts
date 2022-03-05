@@ -1,15 +1,16 @@
 import { StatusCodes } from 'http-status-codes';
 import request from './request';
 import { UserModel } from '../src/models';
+import { UserService } from '../src/services/user.service';
 
+beforeEach(async () =>{
+    await UserModel.deleteMany();
+})
 
 
 describe('UserController test', () => {
 
-    beforeEach(async () =>{
-        await UserModel.deleteMany();
-    })
-
+ 
     describe.each([
         { name: null,       email: 'chandan@gmail.com', password: 'password',   expected: 'name is required' },
         { name: 'chandan',  email: null,                password: 'password',   expected: 'email is required' },
@@ -36,6 +37,27 @@ describe('UserController test', () => {
         expect(response.body.user.name).toEqual(user.name);
         expect(response.body.user.email).toEqual(user.email);
         expect(response.body.user.password).toBeFalsy();
+    });
+
+
+   
+
+})
+
+
+describe("UserController login", () => {
+
+    test('user login expect status 200 and token date in response', async () =>{
+        const user:any ={
+            email: "chandansingh16794@gmail.com",
+            password: "password"
+        }
+        await UserService.signUp({...user, name: "Chandan Singh",});
+        const response = await request().post('/api/user/login').send({...user});
+        expect(response.status).toEqual(StatusCodes.OK);
+        expect(response.body.message).toEqual('login successful'),
+        expect(response.body.token.accessToken).toBeTruthy();
+        expect(response.body.token.refreshToken).toBeTruthy();
     });
 
 })

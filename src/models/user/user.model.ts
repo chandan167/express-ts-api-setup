@@ -102,7 +102,6 @@ const userSchema = new Schema<User, UserModelI>({
 });
 
 userSchema.pre('save', async function(next){
-    console.log("hash password")
     if(!this.isModified('password')){
         next();
     }
@@ -123,9 +122,7 @@ userSchema.static('login', async function(email:string, password:string):Promise
 
 })
 
-userSchema.static('createToken', function():AuthToken{
-   return {authToken: "", refreshToken: ""}
-})
+
 
 export const UserModel = model<User, UserModelI>('User', userSchema);
 
